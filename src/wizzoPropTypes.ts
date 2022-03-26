@@ -14,10 +14,13 @@ type EvtName<EvtType extends keyof HTMLElementEventMap> =
 type EvtListener<
   EvtType extends keyof HTMLElementEventMap,
   TagName extends keyof HTMLElementTagNameMap
-> = (
-  this: HTMLElementTagNameMap[TagName],
-  evt: HTMLElementEventMap[EvtType] & { target: HTMLElementTagNameMap[TagName] }
-) => void
+> = EventListener &
+  ((
+    this: HTMLElementTagNameMap[TagName],
+    evt: HTMLElementEventMap[EvtType] & {
+      target: HTMLElementTagNameMap[TagName]
+    }
+  ) => void)
 type Style = { [prop in keyof CSSStyleDeclaration]?: string }
 type Props<TagName extends keyof HTMLElementTagNameMap> = BaseProps<TagName> & {
   [EvtType in keyof HTMLElementEventMap as EvtName<EvtType>]?: EvtListener<

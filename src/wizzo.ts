@@ -51,13 +51,10 @@ export default function $<T extends keyof HTMLElementTagNameMap>(tagName: T) {
         for (const [key, value] of Object.entries(props)) {
           if (isStyle(key, value))
             for (const [prop, val] of Object.entries(value)) {
-              ele.style.setProperty(prop, val as string)
+              ele.style.setProperty(prop, val || null)
             }
           else if (isListener(key, value))
-            ele.addEventListener(
-              key.slice(2).toLowerCase(),
-              value as EventListener
-            )
+            ele.addEventListener(key.slice(2).toLowerCase(), value)
           else if (typeof value === "string") ele.setAttribute(key, value)
         }
       return ele
@@ -68,4 +65,22 @@ export const frag = (...templateString: WizzoTaggedTemplate) => {
   const fragment = new DocumentFragment()
   fragment.append(...templateToChildren(templateString))
   return fragment
+}
+
+export type { EvtListener, Props, Style }
+
+export function state<T>(initial: T) {
+  let internal = initial
+  const subscribers: ((val: T) => void)[] = []
+  const subscribe = (val: (val: T) => void) => (
+    subscribers.push(val), val(internal)
+  )
+  type setterCallback<T> = (oldVal: T) => T
+  const isSetterCb = (val: unknown): val is setterCallback<T> =>
+    typeof val === "function"
+  const set = (value: T | setterCallback<T>) => {
+    internal = isSetterCb(value) ? value(internal) : value
+    subscribers.forEach(sub => sub(internal))
+  }
+  return { set, subscribe }
 }
