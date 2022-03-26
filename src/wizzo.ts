@@ -38,9 +38,9 @@ const isListener = <
   T2 extends keyof HTMLElementTagNameMap
 >(
   key: string,
-  value: any
+  value: unknown
 ): value is EvtListener<T1, T2> => key.slice(0, 2) === "on"
-const isStyle = (key: string, value: any): value is Style => key === "style"
+const isStyle = (key: string, value: unknown): value is Style => key === "style"
 
 export default function $<T extends keyof HTMLElementTagNameMap>(tagName: T) {
   return (props?: Props<T>) =>
