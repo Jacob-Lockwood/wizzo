@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "target": "ES5",
+    "declaration": true,
+    "outDir": "./lib",
+    "strict": true,
+    "lib": ["DOM", "ESNext"]
+  }
+}

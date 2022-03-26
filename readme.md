@@ -1,0 +1,4 @@
+# Wizzo
+
+- Typescript support
+- Tiny

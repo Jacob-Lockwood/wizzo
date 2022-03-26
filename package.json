@@ -1,0 +1,30 @@
+{
+  "name": "wizzo",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "files": [
+    "/lib/**/*"
+  ],
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
+    "format": "prettier --write \"src/**/*.ts\" \"src/**/*.js\"",
+    "lint": "eslint src/**",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm test && npm run lint",
+    "preversion": "npm run lint",
+    "version": "npm run format && git add -A src",
+    "postversion": "git push && git push --tags"
+  },
+  "keywords": [],
+  "author": "skra-pa-pa",
+  "license": "ISC",
+  "devDependencies": {
+    "eslint": "^8.12.0",
+    "eslint-config-prettier": "^8.5.0",
+    "html-element-attributes-typescript": "^1.0.1",
+    "prettier": "^2.6.1",
+    "typescript": "^4.6.3"
+  }
+}
