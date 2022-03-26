@@ -33,3 +33,16 @@ const app: HTMLDivElement = E("div")({ class: "app" })`
 
 document.body.appendChild(app)
 ```
+
+## Docs
+
+### Default export
+
+Wizzo's default export, commonly set to `E` or `$`, creates an element-maker function—it takes in a tag name as input, and returns a function taking in a props object, which returns a function that accepts children.
+
+```lang-ts
+import E from "wizzo"
+const div = E("div")
+const aDivElement = div({ class: "hi" })`content / children go here`
+// aDivElement is HTMLDivElement
+```
