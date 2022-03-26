@@ -2,7 +2,7 @@
   "name": "wizzo",
   "version": "1.0.0",
   "description": "Wizzo: A tiny type-safe interface for building websites",
-  "main": "index.js",
+  "main": "lib/wizzo.js",
   "files": [
     "/lib/**/*"
   ],
