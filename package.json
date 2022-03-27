@@ -17,7 +17,10 @@
     "version": "npm run format && git add -A src",
     "postversion": "git push && git push --tags"
   },
-  "keywords": [],
+  "keywords": [
+    "wizzo",
+    "browser"
+  ],
   "author": "skra-pa-pa",
   "license": "ISC",
   "homepage": "https://github.com/skra-pa-pa/wizzo#readme",
@@ -33,7 +36,6 @@
     "eslint": "^8.12.0",
     "eslint-config-prettier": "^8.5.0",
     "html-element-attributes-typescript": "^1.0.1",
-    "jsmin": "^1.0.1",
     "prettier": "^2.6.1",
     "typescript": "^4.6.3"
   }
