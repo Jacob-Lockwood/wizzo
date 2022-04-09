@@ -1,9 +1,11 @@
 {
   "compilerOptions": {
-    "target": "ES5",
+    "target": "ES6",
     "declaration": true,
     "outDir": "./lib",
     "strict": true,
-    "lib": ["DOM", "ESNext"]
+    "lib": ["DOM", "ESNext"],
+    "module": "CommonJS",
+    "moduleResolution": "node"
   }
 }
