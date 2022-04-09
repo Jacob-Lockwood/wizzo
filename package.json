@@ -6,9 +6,10 @@
   "files": [
     "/lib/**/*"
   ],
+  "type": "commonjs",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc",
+    "build": "tsc && tsc -p tsconfig.esm.json",
     "format": "prettier --write \"src/**/*.ts\" \"src/**/*.js\"",
     "lint": "eslint src/**",
     "prepare": "npm run build",
@@ -25,7 +26,8 @@
   "license": "ISC",
   "homepage": "https://github.com/skra-pa-pa/wizzo#readme",
   "bugs": "https://github.com/skra-pa-pa/wizzo/issues",
-  "browser": "lib/wizzo.js",
+  "browser": "lib/browser/wizzo.js",
+  "unpkg": "lib/browser/wizzo.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/skra-pa-pa/wizzo.git"

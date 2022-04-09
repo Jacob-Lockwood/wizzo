@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "target": "ES6",
+    "declaration": true,
+    "outDir": "./lib/browser",
+    "strict": true,
+    "lib": ["DOM", "ESNext"],
+    "module": "ES2020",
+    "moduleResolution": "node"
+  }
+}
