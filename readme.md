@@ -2,6 +2,10 @@
 
 A tiny type-safe interface for building websites
 
+## Contributing
+
+I don't expect anyone to contribute but if you want, just open a pull request and/or an issue.
+
 ## Get started
 
 Install Wizzo:
