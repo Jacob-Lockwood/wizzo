@@ -1,6 +1,6 @@
 {
   "name": "wizzo",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Wizzo: A tiny type-safe interface for building websites",
   "main": "lib/wizzo.js",
   "files": [
