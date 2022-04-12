@@ -1,4 +1,5 @@
-import { EnumHtmlAttributes } from "html-element-attributes-typescript"
+import type { EnumHtmlAttributes } from "html-element-attributes-typescript"
+import type { WizzoEventMap } from "./eventMap"
 
 type SpecialPropTagNames = keyof typeof EnumHtmlAttributes
 type HtmlElementTagNameAttributesMap = {
@@ -9,23 +10,8 @@ type HtmlElementTagNameAttributesMap = {
 type BaseProps<T extends keyof HTMLElementTagNameMap> = {
   [prop in Exclude<HtmlElementTagNameAttributesMap[T], "style">]?: string
 }
-type EvtName<EvtType extends keyof HTMLElementEventMap> =
-  `on${Capitalize<EvtType>}`
-type EvtListener<
-  EvtType extends keyof HTMLElementEventMap,
-  TagName extends keyof HTMLElementTagNameMap
-> = EventListener &
-  ((
-    this: HTMLElementTagNameMap[TagName],
-    evt: HTMLElementEventMap[EvtType] & {
-      target: HTMLElementTagNameMap[TagName]
-    }
-  ) => void)
+
 type Style = { [prop in keyof CSSStyleDeclaration]?: string }
-type Props<TagName extends keyof HTMLElementTagNameMap> = BaseProps<TagName> & {
-  [EvtType in keyof HTMLElementEventMap as EvtName<EvtType>]?: EvtListener<
-    EvtType,
-    TagName
-  >
-} & { style?: Style }
-export type { Props, SpecialPropTagNames, Style, EvtListener }
+type Props<TagName extends keyof HTMLElementTagNameMap> = BaseProps<TagName> &
+  Partial<WizzoEventMap<HTMLElementTagNameMap[TagName]>> & { style?: Style }
+export type { Props, SpecialPropTagNames, Style }

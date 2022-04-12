@@ -1,4 +1,5 @@
-import { EvtListener, Props, Style } from "./wizzoPropTypes"
+import type { Props, Style } from "./wizzoPropTypes"
+import type { EvtListener } from "./eventMap"
 
 type WizzoElement = HTMLElement | DocumentFragment
 type WizzoChild =
@@ -33,10 +34,7 @@ const templateToChildren = (templateString: WizzoTaggedTemplate) =>
     return temp
   })
 
-const isListener = <
-  T1 extends keyof HTMLElementEventMap,
-  T2 extends keyof HTMLElementTagNameMap
->(
+const isListener = <T1 extends Event, T2 extends HTMLElement>(
   key: string,
   value: unknown
 ): value is EvtListener<T1, T2> => key.slice(0, 2) === "on"
@@ -54,7 +52,10 @@ export default function $<T extends keyof HTMLElementTagNameMap>(tagName: T) {
               ele.style.setProperty(prop, val || null)
             }
           else if (isListener(key, value))
-            ele.addEventListener(key.slice(2).toLowerCase(), value)
+            ele.addEventListener(
+              key.slice(2).toLowerCase(),
+              value as EventListener
+            )
           else if (typeof value === "string") ele.setAttribute(key, value)
         }
       return ele
@@ -69,18 +70,4 @@ export const frag = (...templateString: WizzoTaggedTemplate) => {
 
 export type { EvtListener, Props, Style }
 
-export function state<T>(initial: T) {
-  let internal = initial
-  const subscribers: ((val: T) => void)[] = []
-  const subscribe = (val: (val: T) => void) => (
-    subscribers.push(val), val(internal)
-  )
-  type setterCallback<T> = (oldVal: T) => T
-  const isSetterCb = (val: unknown): val is setterCallback<T> =>
-    typeof val === "function"
-  const set = (value: T | setterCallback<T>) => {
-    internal = isSetterCb(value) ? value(internal) : value
-    subscribers.forEach(sub => sub(internal))
-  }
-  return { set, subscribe }
-}
+export { state } from "./state"
