@@ -1,6 +1,12 @@
+Note: I will probably not be maintaining this very actively as I have realised that there is a more complete alternative to Wizzo that is better maintained and has pretty much the same goals: [SolidJS](https://github.com/solidjs/solid)
+
 # Wizzo
 
-A tiny type-safe interface for building websites
+A _tiny_ (768 B) type-safe interface for building websites
+
+## What is Wizzo
+
+Basically, it's a wrapper around the DOM API that makes updating content reactively easy without any expensive VDOM or similar calculations. It's about as fast as the DOM can get (or at least close to it). It's lightweight, written in TypeScript, and supports ESM and CommonJS.
 
 ## Contributing
 
@@ -10,36 +16,50 @@ I don't expect anyone to contribute but if you want, just open a pull request an
 
 Install Wizzo:
 
+### via NPM (using a bundler):
+
 ```
 npm install wizzo
+# or
+yarn add wizzo
+```
+
+### With a CDN:
+
+```html
+<script type="module">
+  import E from "https://unpkg.com/wizzo"
+</script>
 ```
 
 Use Wizzo in a project:
 
 ```typescript
-import E, { state, frag } from "wizzo"
-
+import { state, frag, e } from "wizzo"
 const name = "wizzo"
-const count = state(0)
-const app = E("div")({ class: "app" })`
-  ${E("h1")({ class: "title" })`Hello from ${name}!`}
+const [count, setCount] = state<number>(0)
+const app = e.div({ class: "app" })`
+  ${e.h1({ class: "title" })`Hello from ${name}!`}
   Use elements:
-  ${E("p")()`A paragraph element (no props on this one)`}
+  ${e.p()`A paragraph element (no props on this one)`}
   Add event listeners:
-  ${E("button")({
-    onClick: e => count.set(oldCount => oldCount + 1),
+  ${e.button({
+    onClick: e => setCount(count => count + 1),
   })`Click me!`}
-  Specify where content should be re-rendered
-  ${content => {
-    count.subscribe(newCount =>
-      content(E("p")({ class: "display" })`Count: ${count}`)
-    )
-  }}
-  Use \`frag\` (like \`React.Fragment\`):
+  Use an built-in re-rendering state function
+  ${e.p({ class: "display" })`Count: ${count}`}
+  Or explicitly define what and when to re-render:
+  ${e.div()`${async content => {
+    content`Loading...`
+    const response = await fetch("...")
+    const json = await response.json()
+    content`JSON data: ${JSON.stringify(json, 2, null)}`
+  }}`} 
+  Use ${e.code()`frag`} (like ${e.code()`React.Fragment`}):
   ${frag`A fragment. you can put children in here too.`}
-  ${E("aside")()`Thanks for visiting`}
+  ${e.aside()`Thanks for visiting`}
 `
-
+// No fancy render function! `app` is just an HTMLDivElement.
 document.body.appendChild(app)
 ```
 
@@ -47,7 +67,7 @@ document.body.appendChild(app)
 
 ### `WizzoChild`
 
-The `WizzoChild` type is not exported, but it is used internally for any function taking in children, like Wizzo's default export and `frag` export.
+The `WizzoChild` type exported, but it is mainly used internally for any function taking in children, like Wizzo's default export and `frag` export.
 
 Here is the declaration of it:
 
@@ -56,14 +76,14 @@ declare type WizzoElement = HTMLElement | DocumentFragment
 declare type WizzoChild =
   | string
   | WizzoElement
-  | ((content: (child: HTMLElement) => void) => void)
+  | ((content: (...templateString: WizzoTaggedTemplate) => void) => void)
 ```
 
-The only surprising part of the declaration should be the function in the union. Wizzo children can be strings, Nodes, or functions, taking in a `content` callback which can be passed an HTMLElement as a child. Whenever the `content` callback is called, it's contents are re-rendered. This is the only way to re-render Wizzo elements (unless you manually change their content using the native DOM api)
+The only surprising part of the declaration should be the function in the union. Wizzo children can be strings, Nodes, or functions, taking in a `content` callback which can be passed a [tagged template literal][1] as children. Whenever the `content` callback is called, it's contents are re-rendered. This is the only way to re-render Wizzo elements (unless you manually change their content using the native DOM api)
 
 ### Default export
 
-Wizzo's default export, commonly set to `E` or `$`, creates an element-maker function—it takes in a tag name as input, and returns a function taking in a props object, which returns a function that accepts children (a [tagged template literal][1] which is reduced to an array of `WizzoChild`s), which returns an HTMLElement of the type of the TagName.
+Wizzo's default export, commonly set to `E` or `$`, creates an element-maker function—it takes in a tag name as input, and returns a function taking in a props object, which returns a function that accepts children (a tagged template literal] which is reduced to an array of `WizzoChild`ren), which returns an HTMLElement of the type of the TagName.
 
 A function that returns a function that returns a function. It's hard to explain in words, but easier with code:
 
@@ -88,10 +108,23 @@ const myWidget = div({ class: "widget" })`
 `
 ```
 
+But, you can also take these elements from the `e` export.
+
 Note that void elements (`input`, `br`, etc.) are not automatically closed, so you must give them an empty child tagged template literal:
 
 ```typescript
 const myInput = E("input")({ type: "text" })``
+```
+
+### `e`
+
+The `e` export is internally a proxy that maps any property access to a call to the default export, but it is effectively an object containing all element functions.
+
+```typescript
+import { e } from "wizzo"
+const myWidget = e.div({ class: "widget" })`
+  ${e.p()`Lorem ipsum dolor ${e.strong()`sit amet`}.}
+`
 ```
 
 ### `frag`
@@ -99,10 +132,10 @@ const myInput = E("input")({ type: "text" })``
 The `frag` export creates a `DocumentFragment` internally, but you can think of it as the Wizzo version of React's `React.Fragment`:
 
 ```typescript
-import E, { frag } from "wizzo"
+import { e, frag } from "wizzo"
 const aFragment = frag`
   Woah—this is a fragment.
-  ${E("div")()`But you can still put elements in here!`}
+  ${e.div()`But you can still put elements in here!`}
 `
 // aFragment is a DocumentFragment
 ```
@@ -114,26 +147,24 @@ Wizzo exports a `state` function that creates a simple setter and subscriber obj
 The generic `state` function takes in an initial value of type `T` and returns an object with properties `set` and `subscribe`:
 
 ```typescript
-export declare function state<T>(initial: T): {
-  set: (value: T | ((oldVal: T) => T)) => void
-  subscribe: (val: (val: T) => void) => void
-}
+declare function state<T>(
+  initial: T
+): [WizzoChild, (value: T | setterCallback<T>) => void]
 ```
 
 The state function can be used like so:
 
 ```typescript
-import E, { state } from "wizzo"
-// const counter = state<number>(0)
-const counter = state(0)
-const app = E("div")({ class: "app" })`
-  ${E("button")({
-    onClick: e => counter.set(count => count + 1),
+import { e, state } from "wizzo"
+const [count, setCount] = state<number>(0)
+const app = e.div({ class: "app" })`
+  ${e.button({
+    onClick: e => setCount(count => count + 1),
   })`Click me please 😀`}
-  ${content => {
-    counter.subscribe(count => content(E("p")()`Count: ${count}`))
-  }}
+  ${e.p()`Count: ${count}`}
 `
 ```
+
+Note that the first element of the array returned is not a value to be used but rather a Wizzo element that can be directly rendered to the page.
 
 [1]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals#tagged_templates

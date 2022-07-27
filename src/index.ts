@@ -2,16 +2,17 @@ import type { Props, Style } from "./wizzoPropTypes"
 import type { EvtListener } from "./eventMap"
 
 type WizzoElement = HTMLElement | DocumentFragment
-type WizzoChild =
+export type WizzoChild =
   | string
   | WizzoElement
-  | ((content: (child: HTMLElement) => void) => void)
+  | ((content: (...templateString: WizzoTaggedTemplate) => void) => void)
+
 type WizzoTaggedTemplate = [
   strings: TemplateStringsArray,
   ...values: Array<WizzoChild | WizzoChild[]>
 ]
 
-const WizzoTaggedTemplateToWizzoChildrenArr = ([
+const wizzoTaggedTemplateToWizzoChildrenArr = ([
   strings,
   ...values
 ]: WizzoTaggedTemplate) =>
@@ -23,15 +24,20 @@ const WizzoTaggedTemplateToWizzoChildrenArr = ([
     )
     .filter(Boolean)
 
+export const frag = (...templateString: WizzoTaggedTemplate) => {
+  const fragment = new DocumentFragment()
+  fragment.append(...templateToChildren(templateString))
+  return fragment
+}
+
 const templateToChildren = (templateString: WizzoTaggedTemplate) =>
-  WizzoTaggedTemplateToWizzoChildrenArr(templateString).map(child => {
+  wizzoTaggedTemplateToWizzoChildrenArr(templateString).map(child => {
     if (typeof child !== "function") return child
-    let temp: HTMLElement = $("div")()``
-    child(newChild => {
-      temp.replaceWith(newChild)
-      temp = newChild
-    })
-    return temp
+    const fragment = frag``
+    child((...templateString) =>
+      fragment.replaceChildren(...templateToChildren(templateString))
+    )
+    return fragment
   })
 
 const isListener = <T1 extends Event, T2 extends HTMLElement>(
@@ -40,7 +46,7 @@ const isListener = <T1 extends Event, T2 extends HTMLElement>(
 ): value is EvtListener<T1, T2> => key.slice(0, 2) === "on"
 const isStyle = (key: string, value: unknown): value is Style => key === "style"
 
-export default function $<T extends keyof HTMLElementTagNameMap>(tagName: T) {
+export default function E<T extends keyof HTMLElementTagNameMap>(tagName: T) {
   return (props?: Props<T>) =>
     (...templateString: WizzoTaggedTemplate) => {
       const ele = document.createElement(tagName)
@@ -62,12 +68,19 @@ export default function $<T extends keyof HTMLElementTagNameMap>(tagName: T) {
     }
 }
 
-export const frag = (...templateString: WizzoTaggedTemplate) => {
-  const fragment = new DocumentFragment()
-  fragment.append(...templateToChildren(templateString))
-  return fragment
-}
-
 export type { EvtListener, Props, Style }
 
 export { state } from "./state"
+
+type ElementMap = {
+  [tagName in keyof HTMLElementTagNameMap]: (
+    props: Props<tagName>
+  ) => (
+    ...templateString: WizzoTaggedTemplate
+  ) => HTMLElementTagNameMap[tagName]
+}
+/** An object containing easy access to all HTML Elements */
+const e = new Proxy<ElementMap>({} as ElementMap, {
+  get: (_, prop: keyof HTMLElementTagNameMap) => E(prop),
+})
+export { e }
